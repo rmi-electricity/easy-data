@@ -3,7 +3,7 @@ from pathlib import Path
 from etoolbox.utils.pudl import (
     make_pudl_tabl,
     read_pudl_table,
-    PretendPudlTabl,
+    PretendPudlTablCore,
     get_pudl_tables_as_dz,
 )
 from etoolbox.datazip import DataZip
@@ -41,6 +41,13 @@ def main():
         roll_fuel_cost=True,
         fill_net_gen=True,
     )
+
+
+def add(tables=("epacamd_eia_subplant_ids",)):
+    obj = DataZip.load(path / "pdltbl.zip", klass=PretendPudlTablCore)
+    for table in tables:
+        obj._dfs[table] = read_pudl_table(table)
+    DataZip.dump(obj, path / "pdltbl2.zip")
 
 
 if __name__ == "__main__":
