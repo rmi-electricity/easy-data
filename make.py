@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from etoolbox.datazip import DataZip
-from etoolbox.utils.pudl import PretendPudlTablCore, make_pudl_tabl, read_pudl_table
+from etoolbox.utils.pudl import PretendPudlTablCore, make_pudl_tabl, read_pudl_table, TABLE_NAME_MAP
 from etoolbox.utils.pudl_helpers import (
     fix_eia_na,
     remove_leading_zeros_from_numeric_strings,
@@ -37,11 +37,13 @@ def main():
         "gen_original_eia923",
         "gens_eia860",
         "gf_eia923",
-        "gf_nonuclear_eia923",
-        "gf_nuclear_eia923",
+        # "gf_nonuclear_eia923",
+        # "gf_nuclear_eia923",
         "own_eia860",
         "plants_eia860",
         "utils_eia860",
+        "fuel_cost",
+        "plant_parts_eia",
     )
     out = make_pudl_tabl(
         path / "temp",
@@ -52,15 +54,17 @@ def main():
         fill_net_gen=True,
     )
     for table in tables:
-        if out._dfs[table] is None:
+        if table in ("fuel_cost", "plant_parts_eia", "gf_nonuclear_eia923", "gf_nuclear_eia923"):
+            continue
+        if TABLE_NAME_MAP.get(table, table) not in out._dfs:
             out._dfs[table] = read_pudl_table(table)
     out._dfs["gens_eia860m"] = eia860m(
-        (2023, 3)
+        (2022, 3), (2022, 5), (2023, 3), (2023, 5)
         # *[(a, b) for b in range(2023, 2015, -1) for a in (12, 9, 6, 3)]
     )
 
     DataZip.dump(out, path / "pdltbl2.zip")
-    (path / "temp").unlink()
+    (path / "temp.zip").unlink()
 
 
 def add(tables=("epacamd_eia_subplant_ids",)):
@@ -201,5 +205,5 @@ def eia860m(*args):
 
 
 if __name__ == "__main__":
-    add_860m()
-    # main()
+    # add_860m()
+    main()
